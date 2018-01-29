@@ -14,16 +14,14 @@ public class ZombieServerListenerThread extends Thread {
         try {
             while (true) {
                 String line_from_server = zombieClientActivity.from_server.readLine();
-                if (line_from_server != null) {
+                if (line_from_server == null) {
                     zombieClientActivity.print("Nothing to read from server");
                 } else {
                     zombieClientActivity.print(line_from_server);
                 }
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }
