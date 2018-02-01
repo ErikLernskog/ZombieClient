@@ -1,6 +1,10 @@
 package com.lernskog.erik.zombieclient;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -8,6 +12,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -18,6 +26,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ZombieClientActivity extends FragmentActivity implements View.OnClickListener, OnMapReadyCallback {
     public ZombieServerListenerThread zombieServerListenerThread;
@@ -50,12 +60,52 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
     public int number;
     public String longitud;
     public String latitud;
-    private GoogleMap mMap;
+    public String status;
+    Map<String, Player> players;
+    private GoogleMap googleMap;
+    private LocationCallback mLocationCallback;
+    private FusedLocationProviderClient mFusedLocationClient;
+    private Boolean mRequestingLocationUpdates;
+    private LocationRequest mLocationRequest;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
+    }
+
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+                mLocationCallback,
+                null /* Looper */);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLocationUpdates();
+    }
+
+    private void stopLocationUpdates() {
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         print("onMapReady");
-        mMap = googleMap;
+        this.googleMap = googleMap;
     }
 
     @Override
@@ -92,6 +142,37 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         latitud_edittext = findViewById(R.id.latitud_edittext);
 
         number = 1;
+        players = new HashMap<String, Player>();
+        user = user_edittext.getText().toString();
+        status = status_state_textview.getText().toString();
+        password = password_edittext.getText().toString();
+        longitud = longitud_edittext.getText().toString();
+        latitud = latitud_edittext.getText().toString();
+        Player me = new Player(user, status, Double.parseDouble(latitud), Double.parseDouble(longitud));
+        players.put(user, me);
+        mFusedLocationClient = new FusedLocationProviderClient(this);
+        mRequestingLocationUpdates = true;
+        createLocationRequest();
+
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                for (Location location : locationResult.getLocations()) {
+                    print("onLocationResult");
+                    Double lat = location.getLatitude();
+                    Double lon = location.getLongitude();
+                    Player player = players.get(user);
+                    player.latitude = lat;
+                    player.longitude = lon;
+                    players.put(user, player);
+                    latitud = lat.toString();
+                    longitud = lon.toString();
+                    latitud_edittext.setText(latitud);
+                    longitud_edittext.setText(longitud);
+                    send_location();
+                }
+            }
+        };
     }
 
     @Override
@@ -110,6 +191,9 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
             zombieClientThread.start();
         } else if (v == register_button) {
             print("register");
+            players.clear();
+            Player me = new Player(user, status, Double.parseDouble(latitud), Double.parseDouble(longitud));
+            players.put(user, me);
             zombieClientThread = new ZombieClientThread(this, "register");
             zombieClientThread.start();
         } else if (v == login_button) {
@@ -121,11 +205,20 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
             zombieClientThread = new ZombieClientThread(this, "logout");
             zombieClientThread.start();
         } else if (v == send_location_button) {
-            print("send_location");
-            zombieClientThread = new ZombieClientThread(this, "send_location");
+            //print("send_location");
+            //zombieClientThread = new ZombieClientThread(this, "send_location");
+            //zombieClientThread.start();
+            print("list_visible_players");
+            zombieClientThread = new ZombieClientThread(this, "list_visible_players");
             zombieClientThread.start();
         }
         number = number + 1;
+    }
+
+    public void send_location() {
+        print("send_location");
+        ZombieClientThread zombieClientThread = new ZombieClientThread(this, "send_location");
+        zombieClientThread.start();
     }
 
     public void print(final String message) {
@@ -149,32 +242,44 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         }
 
         if (message.contains("ASYNC")) {
+            final ZombieClientActivity t = this;
             login_state_textview.post(new Runnable() {
                 @Override
                 public void run() {
                     String[] async = message.split("[ ]+");
                     String name = async[2];
                     String type = async[3];
-                    Double lat = Double.parseDouble(async[4]);
-                    Double lng = Double.parseDouble(async[5]);
-
+                    Double latitude = Double.parseDouble(async[4]);
+                    Double longitude = Double.parseDouble(async[5]);
+                    Player currentplayer = new Player(name, type, latitude, longitude);
+                    players.put(name, currentplayer);
                     login_state_textview.setText(name);
-                    LatLng me = new LatLng(lat, lng);
-                    LatLng you = new LatLng(59.25403118133545, 15.247076153755189);
-                    mMap.clear();
-                    mMap.addMarker(new MarkerOptions().position(me).title(name + " " + type));
-                    mMap.addMarker(new MarkerOptions().position(you).title("You Type"));
-                    mMap.moveCamera(CameraUpdateFactory.zoomTo(15));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLng(me));
-
-                    //mMap.setMyLocationEnabled(true);
-
+                    googleMap.clear();
+                    for (String key : players.keySet()) {
+                        Player player = players.get(key);
+                        LatLng position = new LatLng(player.latitude, player.longitude);
+                        googleMap.addMarker(new MarkerOptions().position(position).title(player.name + " " + player.type));
+                        googleMap.moveCamera(CameraUpdateFactory.zoomTo(15));
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(position));
+                    }
+                    if (ActivityCompat.checkSelfPermission(t, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(t, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        return;
+                    }
+                    googleMap.setMyLocationEnabled(true);
+                    googleMap.getUiSettings().setCompassEnabled(true);
+                    googleMap.getUiSettings().setZoomControlsEnabled(true);
                 }
             });
-
-
-            //Intent intent = new Intent(this, MapsActivity.class);
-            //startActivity(intent);
         }
+        if (message.contains("VISIBLE-PLAYERS")) {
+            login_state_textview.post(new Runnable() {
+                @Override
+                public void run() {
+                    print(message);
+                    login_state_textview.setText("Visible Players");
+                }
+            });
+        }
+
     }
 }

@@ -27,18 +27,28 @@ public class ZombieClientThread extends Thread {
                 zombieClientActivity.zombieServerListenerThread = new ZombieServerListenerThread(zombieClientActivity);
                 zombieClientActivity.zombieServerListenerThread.start();
                 zombieClientActivity.print("connect");
+            } else if (zombieClientActivity.to_server == null) {
+                zombieClientActivity.print("Not connected");
             } else if (command == "register") {
-                zombieClientActivity.print(zombieClientActivity.number + " REGISTER " + zombieClientActivity.user + " " + zombieClientActivity.password);
-                zombieClientActivity.to_server.println(zombieClientActivity.number + " REGISTER " + zombieClientActivity.user + " " + zombieClientActivity.password);
+                String send_command = zombieClientActivity.number + " REGISTER " + zombieClientActivity.user + " " + zombieClientActivity.password;
+                zombieClientActivity.print(send_command);
+                zombieClientActivity.to_server.println(send_command);
             } else if (command == "login") {
-                zombieClientActivity.print(zombieClientActivity.number + " LOGIN " + zombieClientActivity.user + " " + zombieClientActivity.password);
-                zombieClientActivity.to_server.println(zombieClientActivity.number + " LOGIN " + zombieClientActivity.user + " " + zombieClientActivity.password);
+                String send_command = zombieClientActivity.number + " LOGIN " + zombieClientActivity.user + " " + zombieClientActivity.password;
+                zombieClientActivity.print(send_command);
+                zombieClientActivity.to_server.println(send_command);
             } else if (command == "logout") {
-                zombieClientActivity.print(zombieClientActivity.number + " LOGOUT");
-                zombieClientActivity.to_server.println(zombieClientActivity.number + " LOGOUT");
+                String send_command = zombieClientActivity.number + " LOGOUT";
+                zombieClientActivity.print(send_command);
+                zombieClientActivity.to_server.println(send_command);
             } else if (command == "send_location") {
-                zombieClientActivity.print(zombieClientActivity.number + " I-AM-AT " + zombieClientActivity.latitud + " " + zombieClientActivity.longitud);
-                zombieClientActivity.to_server.println(zombieClientActivity.number + " I-AM-AT " + zombieClientActivity.latitud + " " + zombieClientActivity.longitud);
+                String send_command = zombieClientActivity.number + " I-AM-AT " + zombieClientActivity.latitud + " " + zombieClientActivity.longitud;
+                zombieClientActivity.print(send_command);
+                zombieClientActivity.to_server.println(send_command);
+            } else if (command == "list_visible_players") {
+                String send_command = zombieClientActivity.number + " LIST-VISIBLE-PLAYERS";
+                zombieClientActivity.print(send_command);
+                zombieClientActivity.to_server.println(send_command);
             }
         } catch (IOException e) {
             e.printStackTrace();

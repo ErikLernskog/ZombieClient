@@ -109,14 +109,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:hint="latitud"
-            android:text="59.25403118133545" />
+            android:text="59.254" />
 
         <EditText
             android:id="@+id/longitud_edittext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:hint="longitud"
-            android:text="15.247076153755189" />
+            android:text="15.249" />
     </LinearLayout>
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
