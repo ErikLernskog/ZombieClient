@@ -87,9 +87,7 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        mFusedLocationClient.requestLocationUpdates(mLocationRequest,
-                mLocationCallback,
-                null /* Looper */);
+        mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null);
     }
 
     @Override
@@ -114,8 +112,7 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_zombie_client);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         connect_button = findViewById(R.id.connect_button);
@@ -142,6 +139,7 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         latitud_edittext = findViewById(R.id.latitud_edittext);
 
         number = 1;
+
         players = new HashMap<String, Player>();
         user = user_edittext.getText().toString();
         status = status_state_textview.getText().toString();
@@ -150,6 +148,7 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         latitud = latitud_edittext.getText().toString();
         Player me = new Player(user, status, Double.parseDouble(latitud), Double.parseDouble(longitud));
         players.put(user, me);
+
         mFusedLocationClient = new FusedLocationProviderClient(this);
         mRequestingLocationUpdates = true;
         createLocationRequest();
@@ -241,7 +240,7 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
             });
         }
 
-        if (message.contains("ASYNC")) {
+        if (message.contains(" PLAYER ")) {
             final ZombieClientActivity t = this;
             login_state_textview.post(new Runnable() {
                 @Override
@@ -266,20 +265,13 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
                         return;
                     }
                     googleMap.setMyLocationEnabled(true);
+                    googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                    googleMap.getUiSettings().setAllGesturesEnabled(true);
+                    googleMap.getUiSettings().setMyLocationButtonEnabled(true);
                     googleMap.getUiSettings().setCompassEnabled(true);
                     googleMap.getUiSettings().setZoomControlsEnabled(true);
                 }
             });
         }
-        if (message.contains("VISIBLE-PLAYERS")) {
-            login_state_textview.post(new Runnable() {
-                @Override
-                public void run() {
-                    print(message);
-                    login_state_textview.setText("Visible Players");
-                }
-            });
-        }
-
     }
 }
