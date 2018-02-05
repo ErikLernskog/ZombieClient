@@ -17,7 +17,7 @@ public class ZombieServerListenerThread extends Thread {
                 if (line_from_server == null) {
                     zombieClientActivity.print("Nothing to read from server");
                 } else {
-                    zombieClientActivity.print(line_from_server);
+                    zombieClientActivity.receive_message(line_from_server);
                 }
             }
         } catch (IOException e) {
