@@ -32,29 +32,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ZombieClientActivity extends FragmentActivity implements View.OnClickListener, OnMapReadyCallback {
+    private final static String REQUESTING_LOCATION_UPDATES_KEY = "REQUESTING_LOCATION_UPDATES_KEY";
     public ZombieServerListenerThread zombieServerListenerThread;
     public Socket socket;
     public PrintWriter to_server;
     public BufferedReader from_server;
-
     public Button connect_button;
     public Button register_button;
     public Button login_button;
     public Button logout_button;
     public Button send_location_button;
-
     public EditText port_edittext;
     public EditText ip_edittext;
     public EditText user_edittext;
     public EditText password_edittext;
-
     public TextView connection_state_textview;
     public TextView login_state_textview;
     public TextView status_state_textview;
-
     public EditText latitud_edittext;
     public EditText longitud_edittext;
-
     public String ip;
     public int port;
     public String user;
@@ -79,6 +75,33 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLocationUpdates();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, mRequestingLocationUpdates);
+        //outState.putParcelable();
+        // ...
+        super.onSaveInstanceState(outState);
+    }
+
+    private void updateValuesFromBundle(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            // Update the value of mRequestingLocationUpdates from the Bundle.
+            if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY)) {
+                mRequestingLocationUpdates = savedInstanceState.getBoolean(
+                        REQUESTING_LOCATION_UPDATES_KEY);
+            }
+        }
+        // ...
+        // Update UI to match restored state
+        //updateUI();
+    }
+
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
@@ -86,17 +109,29 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
+    private void createLocationCallback() {
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                for (Location location : locationResult.getLocations()) {
+                    print("onLocationResult");
+                    Double lat = location.getLatitude();
+                    Double lon = location.getLongitude();
+                    latitud = lat.toString();
+                    longitud = lon.toString();
+                    latitud_edittext.setText(latitud);
+                    longitud_edittext.setText(longitud);
+                    send_command("send_location");
+                }
+            }
+        };
+    }
+
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
         mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        stopLocationUpdates();
     }
 
     private void stopLocationUpdates() {
@@ -113,6 +148,8 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
     protected void onCreate(Bundle savedInstanceState) {
         print("onCreate");
         super.onCreate(savedInstanceState);
+        updateValuesFromBundle(savedInstanceState);
+
         setContentView(R.layout.activity_zombie_client);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -146,31 +183,10 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         players = new HashMap<String, Player>();
         listAllPlayers = true;
 
-        user = user_edittext.getText().toString();
-        status = status_state_textview.getText().toString();
-        password = password_edittext.getText().toString();
-        longitud = longitud_edittext.getText().toString();
-        latitud = latitud_edittext.getText().toString();
-
         mFusedLocationClient = new FusedLocationProviderClient(this);
         mRequestingLocationUpdates = true;
         createLocationRequest();
-
-        mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                for (Location location : locationResult.getLocations()) {
-                    print("onLocationResult");
-                    Double lat = location.getLatitude();
-                    Double lon = location.getLongitude();
-                    latitud = lat.toString();
-                    longitud = lon.toString();
-                    latitud_edittext.setText(latitud);
-                    longitud_edittext.setText(longitud);
-                    send_command("send_location");
-                }
-            }
-        };
+        createLocationCallback();
     }
 
     @Override
@@ -211,27 +227,12 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
 
     public void receive_message(final String message) {
         print(message);
-        if (message.contains("ZombieServer")) {
-            connection_state_textview.post(new Runnable() {
-                @Override
-                public void run() {
-                    connection_state_textview.setText(message);
-                }
-            });
-        }
 
-        if (message.contains("WELCOME")) {
-            login_state_textview.post(new Runnable() {
-                @Override
-                public void run() {
-                    login_state_textview.setText("Logged In");
-                    send_command("send_location");
-                }
-            });
-            listAllPlayers = true;
-        }
-
-        if (message.contains(" PLAYER ")) {
+        if (message.matches("(.*) PLAYER (.*) GONE")) {
+            String[] playerInfo = message.split("[ ]+");
+            String name = playerInfo[2];
+            players.remove(name);
+        } else if (message.contains(" PLAYER ")) {
             final ZombieClientActivity zombieClientActivity = this;
             login_state_textview.post(new Runnable() {
                 @Override
@@ -269,6 +270,31 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
                 send_command("list_visible_players");
                 listAllPlayers = false;
             }
+        } else if (message.contains("ZombieServer")) {
+            connection_state_textview.post(new Runnable() {
+                @Override
+                public void run() {
+                    connection_state_textview.setText(message);
+                }
+            });
+        } else if (message.contains("WELCOME")) {
+            login_state_textview.post(new Runnable() {
+                @Override
+                public void run() {
+                    login_state_textview.setText("Logged In");
+                    send_command("send_location");
+                }
+            });
+            listAllPlayers = true;
+        } else if (message.contains(" GOODBYE")) {
+            login_state_textview.post(new Runnable() {
+                @Override
+                public void run() {
+                    login_state_textview.setText("Logged Out");
+                    googleMap.clear();
+                    players.clear();
+                }
+            });
         }
     }
 

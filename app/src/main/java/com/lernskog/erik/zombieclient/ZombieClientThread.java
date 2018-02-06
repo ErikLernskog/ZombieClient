@@ -52,6 +52,7 @@ public class ZombieClientThread extends Thread {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            zombieClientActivity.print(e.getMessage());
         }
     }
 }

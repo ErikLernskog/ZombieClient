@@ -5,6 +5,7 @@ import java.io.IOException;
 
 public class ZombieServerListenerThread extends Thread {
     private ZombieClientActivity zombieClientActivity;
+    private boolean readFromServer = true;
 
     public ZombieServerListenerThread(ZombieClientActivity zombieClientActivity) {
         this.zombieClientActivity = zombieClientActivity;
@@ -12,10 +13,11 @@ public class ZombieServerListenerThread extends Thread {
 
     public void run() {
         try {
-            while (true) {
+            while (readFromServer) {
                 String line_from_server = zombieClientActivity.from_server.readLine();
                 if (line_from_server == null) {
                     zombieClientActivity.print("Nothing to read from server");
+                    readFromServer = false;
                 } else {
                     zombieClientActivity.receive_message(line_from_server);
                 }
