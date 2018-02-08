@@ -2,7 +2,6 @@ package com.lernskog.erik.zombieclient;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -22,8 +21,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.BufferedReader;
@@ -213,9 +212,6 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         if (v == connect_button) {
             send_command("connect");
         } else if (v == register_button) {
-            players.clear();
-            Player me = new Player(user, status, Double.parseDouble(latitud), Double.parseDouble(longitud));
-            players.put(user, me);
             send_command("register");
         } else if (v == login_button) {
             send_command("login");
@@ -250,6 +246,10 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         if (message.matches("(.*) PLAYER (.*) GONE")) {
             String[] playerInfo = message.split("[ ]+");
             String name = playerInfo[2];
+            Player player = players.get(name);
+            if (player == null) {
+                player.marker.remove();
+            }
             players.remove(name);
         } else if (message.contains(" PLAYER ")) {
             final ZombieClientActivity zombieClientActivity = this;
@@ -261,25 +261,31 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
                     String type = playerInfo[3];
                     Double latitude = Double.parseDouble(playerInfo[4]);
                     Double longitude = Double.parseDouble(playerInfo[5]);
-                    Player currentplayer = new Player(name, type, latitude, longitude);
-                    players.put(name, currentplayer);
-                    googleMap.clear();
-                    for (String key : players.keySet()) {
-                        Player player = players.get(key);
-                        LatLng position = new LatLng(player.latitude, player.longitude);
 
-                        if (player.type.equals("HUMAN")) {
-                            googleMap.addMarker(new MarkerOptions().position(position).title(player.name + " " + player.type).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-                        } else {
-                            googleMap.addMarker(new MarkerOptions().position(position).title(player.name + " " + player.type).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-                        }
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(position));
-                        if (player.name.equals(zombieClientActivity.user)) {
-                            status_state_textview.setText(player.type);
-                            googleMap.addCircle(new CircleOptions().center(position).radius(100).strokeColor(Color.RED));
-                        }
+                    LatLng position = new LatLng(latitude, longitude);
+                    Player player = players.get(name);
+
+                    if (player == null) {
+                        print("null");
+                        Marker marker = googleMap.addMarker(new MarkerOptions().position(position).title(name + " " + type));
+                        player = new Player(name, type, marker);
+                    } else {
+                        player.type = type;
                     }
 
+                    if (player.type.equals("HUMAN")) {
+                        player.marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.human));
+                    } else {
+                        player.marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.zombie));
+                    }
+
+                    player.marker.setPosition(position);
+                    players.put(name, player);
+
+                    if (player.name.equals(zombieClientActivity.user)) {
+                        status_state_textview.setText(player.type);
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(position));
+                    }
                 }
             });
             if (listAllPlayers) {
