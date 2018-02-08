@@ -20,7 +20,6 @@ public class ZombieClientThread extends Thread {
     public void run() {
         try {
             if (command == "connect") {
-                zombieClientActivity.zombieServerListenerThread = new ZombieServerListenerThread(zombieClientActivity);
                 zombieClientActivity.socket = new Socket(zombieClientActivity.ip, zombieClientActivity.port);
                 zombieClientActivity.to_server = new PrintWriter(new BufferedWriter(new OutputStreamWriter(zombieClientActivity.socket.getOutputStream())), true);
                 zombieClientActivity.from_server = new BufferedReader(new InputStreamReader(zombieClientActivity.socket.getInputStream()));

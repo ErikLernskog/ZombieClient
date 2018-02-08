@@ -17,6 +17,12 @@
             android:text="Offline" />
 
         <TextView
+            android:id="@+id/register_state_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Not Registered" />
+
+        <TextView
             android:id="@+id/login_state_textview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -70,33 +76,45 @@
 
         <Button
             android:id="@+id/connect_button"
+            style="@android:style/Widget.Button.Inset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Connect" />
 
         <Button
             android:id="@+id/register_button"
+            style="@android:style/Widget.Button.Inset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Register" />
 
         <Button
             android:id="@+id/login_button"
+            style="@android:style/Widget.Button.Inset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Login" />
 
         <Button
             android:id="@+id/logout_button"
+            style="@android:style/Widget.Button.Inset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Logout" />
 
         <Button
             android:id="@+id/send_location_button"
+            style="@android:style/Widget.Button.Inset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Send Location" />
+            android:text="Location" />
+
+        <Button
+            android:id="@+id/list_players_button"
+            style="@android:style/Widget.Button.Inset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="List" />
     </LinearLayout>
 
     <LinearLayout

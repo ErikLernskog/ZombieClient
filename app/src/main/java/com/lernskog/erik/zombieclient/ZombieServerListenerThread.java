@@ -4,8 +4,8 @@ package com.lernskog.erik.zombieclient;
 import java.io.IOException;
 
 public class ZombieServerListenerThread extends Thread {
+    public boolean readFromServer = true;
     private ZombieClientActivity zombieClientActivity;
-    private boolean readFromServer = true;
 
     public ZombieServerListenerThread(ZombieClientActivity zombieClientActivity) {
         this.zombieClientActivity = zombieClientActivity;
