@@ -45,7 +45,6 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
     public int number;
     public String longitud;
     public String latitud;
-    public String status;
     public Boolean listAllPlayers;
     public String visibility;
     private Button connect_button;
@@ -122,8 +121,6 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         players = new HashMap<String, Player>();
         listAllPlayers = true;
 
-        mFusedLocationClient = new FusedLocationProviderClient(this);
-        mRequestingLocationUpdates = true;
         createLocationRequest();
         createLocationCallback();
     }
@@ -165,6 +162,8 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
 
     protected void createLocationRequest() {
         print("createLocationRequest");
+        mFusedLocationClient = new FusedLocationProviderClient(this);
+        mRequestingLocationUpdates = true;
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
         mLocationRequest.setFastestInterval(10000);
@@ -296,17 +295,15 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
                     } else {
                         player.marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.zombie));
                     }
-                    float result[] = new float[1];
-                    Location.distanceBetween(latitude, longitude, Double.parseDouble(zombieClientActivity.latitud), Double.parseDouble(zombieClientActivity.longitud), result);
 
                     if (player.name.equals(zombieClientActivity.user)) {
                         status_state_textview.setText(player.type);
                         googleMap.moveCamera(CameraUpdateFactory.newLatLng(position));
                     } else {
+                        float result[] = new float[1];
+                        Location.distanceBetween(latitude, longitude, Double.parseDouble(zombieClientActivity.latitud), Double.parseDouble(zombieClientActivity.longitud), result);
                         player.marker.setSnippet("Distance " + String.valueOf(result[0]));
                     }
-                    player.marker.showInfoWindow();
-                    player.marker.setVisible(true);
                     player.marker.setPosition(position);
                     players.put(name, player);
                 }
