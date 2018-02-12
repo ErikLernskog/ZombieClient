@@ -10,35 +10,19 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/connection_state_textview"
+        <Button
+            android:id="@+id/connect_button"
+            style="@android:style/Widget.Button.Inset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Offline" />
+            android:text="Connect" />
 
-        <TextView
-            android:id="@+id/register_state_textview"
+        <EditText
+            android:id="@+id/ip_edittext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Not Registered" />
-
-        <TextView
-            android:id="@+id/login_state_textview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Logged Out" />
-
-        <TextView
-            android:id="@+id/status_textview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Human" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+            android:hint="IP"
+            android:text="192.168.10.190" />
 
         <EditText
             android:id="@+id/port_edittext"
@@ -47,12 +31,25 @@
             android:hint="Port"
             android:text="2002" />
 
-        <EditText
-            android:id="@+id/ip_edittext"
+        <TextView
+            android:id="@+id/connection_state_textview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="IP"
-            android:text="192.168.10.190" />
+            android:text="Offline" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/register_button"
+            style="@android:style/Widget.Button.Inset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Register" />
 
         <EditText
             android:id="@+id/user_edittext"
@@ -67,26 +64,19 @@
             android:layout_height="wrap_content"
             android:hint="Password"
             android:text="Kire" />
+
+        <TextView
+            android:id="@+id/register_state_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Not Registered" />
+
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/connect_button"
-            style="@android:style/Widget.Button.Inset"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Connect" />
-
-        <Button
-            android:id="@+id/register_button"
-            style="@android:style/Widget.Button.Inset"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Register" />
 
         <Button
             android:id="@+id/login_button"
@@ -102,25 +92,38 @@
             android:layout_height="wrap_content"
             android:text="Logout" />
 
-        <Button
-            android:id="@+id/send_location_button"
-            style="@android:style/Widget.Button.Inset"
+        <TextView
+            android:id="@+id/login_state_textview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Location" />
+            android:text="Logged Out" />
 
         <Button
-            android:id="@+id/list_players_button"
+            android:id="@+id/turn_button"
             style="@android:style/Widget.Button.Inset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="List" />
+            android:text="Turn" />
+
+        <TextView
+            android:id="@+id/status_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Human" />
+
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/send_location_button"
+            style="@android:style/Widget.Button.Inset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Location" />
 
         <EditText
             android:id="@+id/latitud_edittext"
@@ -135,6 +138,41 @@
             android:layout_height="wrap_content"
             android:hint="longitud"
             android:text="15.249" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/list_players_button"
+            style="@android:style/Widget.Button.Inset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="List" />
+
+        <TextView
+            android:id="@+id/players_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0" />
+
+        <Button
+            android:id="@+id/visibility_button"
+            style="@android:style/Widget.Button.Inset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Visibility" />
+
+        <EditText
+            android:id="@+id/visibility_edittext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Visibility"
+            android:text="1000" />
+
     </LinearLayout>
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"

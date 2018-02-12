@@ -48,6 +48,18 @@ public class ZombieClientThread extends Thread {
                 String send_command = zombieClientActivity.number + " LIST-VISIBLE-PLAYERS";
                 zombieClientActivity.print(send_command);
                 zombieClientActivity.to_server.println(send_command);
+            } else if (command == "set_visibility") {
+                String send_command = zombieClientActivity.number + " SET-VISIBILITY " + zombieClientActivity.visibility;
+                zombieClientActivity.print(send_command);
+                zombieClientActivity.to_server.println(send_command);
+            } else if (command == "turn") {
+                String newType = "ZOMBIE";
+                if (zombieClientActivity.status_state_textview.getText().equals("ZOMBIE")) {
+                    newType = "HUMAN";
+                }
+                String send_command = zombieClientActivity.number + " TURN " + newType;
+                zombieClientActivity.print(send_command);
+                zombieClientActivity.to_server.println(send_command);
             }
         } catch (IOException e) {
             e.printStackTrace();

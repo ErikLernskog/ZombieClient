@@ -37,22 +37,7 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
     public Socket socket;
     public PrintWriter to_server;
     public BufferedReader from_server;
-    public Button connect_button;
-    public Button register_button;
-    public Button login_button;
-    public Button logout_button;
-    public Button send_location_button;
-    public Button list_players_button;
-    public EditText port_edittext;
-    public EditText ip_edittext;
-    public EditText user_edittext;
-    public EditText password_edittext;
-    public TextView connection_state_textview;
-    public TextView login_state_textview;
     public TextView status_state_textview;
-    public TextView register_state_textview;
-    public EditText latitud_edittext;
-    public EditText longitud_edittext;
     public String ip;
     public int port;
     public String user;
@@ -62,12 +47,86 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
     public String latitud;
     public String status;
     public Boolean listAllPlayers;
+    public String visibility;
+    private Button connect_button;
+    private Button register_button;
+    private Button login_button;
+    private Button logout_button;
+    private Button send_location_button;
+    private Button list_players_button;
+    private Button set_visibility_button;
+    private Button turn_button;
+    private EditText port_edittext;
+    private EditText ip_edittext;
+    private EditText user_edittext;
+    private EditText password_edittext;
+    private EditText latitud_edittext;
+    private EditText longitud_edittext;
+    private EditText visibility_edittext;
+    private TextView connection_state_textview;
+    private TextView login_state_textview;
+    private TextView register_state_textview;
+    private TextView players_textview;
     private Map<String, Player> players;
     private GoogleMap googleMap;
     private LocationCallback mLocationCallback;
     private FusedLocationProviderClient mFusedLocationClient;
     private Boolean mRequestingLocationUpdates;
     private LocationRequest mLocationRequest;
+    private Location myLocation;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        print("onCreate");
+        super.onCreate(savedInstanceState);
+        updateValuesFromBundle(savedInstanceState);
+
+        setContentView(R.layout.activity_zombie_client);
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        connect_button = findViewById(R.id.connect_button);
+        connect_button.setOnClickListener(this);
+        register_button = findViewById(R.id.register_button);
+        register_button.setOnClickListener(this);
+        login_button = findViewById(R.id.login_button);
+        login_button.setOnClickListener(this);
+        logout_button = findViewById(R.id.logout_button);
+        logout_button.setOnClickListener(this);
+        send_location_button = findViewById(R.id.send_location_button);
+        send_location_button.setOnClickListener(this);
+        list_players_button = findViewById(R.id.list_players_button);
+        list_players_button.setOnClickListener(this);
+        set_visibility_button = findViewById(R.id.visibility_button);
+        set_visibility_button.setOnClickListener(this);
+        turn_button = findViewById(R.id.turn_button);
+        turn_button.setOnClickListener(this);
+
+        port_edittext = findViewById(R.id.port_edittext);
+        ip_edittext = findViewById(R.id.ip_edittext);
+        user_edittext = findViewById(R.id.user_edittext);
+        password_edittext = findViewById(R.id.password_edittext);
+        visibility_edittext = findViewById(R.id.visibility_edittext);
+        longitud_edittext = findViewById(R.id.longitud_edittext);
+        latitud_edittext = findViewById(R.id.latitud_edittext);
+
+        connection_state_textview = findViewById(R.id.connection_state_textview);
+        register_state_textview = findViewById(R.id.register_state_textview);
+        login_state_textview = findViewById(R.id.login_state_textview);
+        status_state_textview = findViewById(R.id.status_textview);
+        players_textview = findViewById(R.id.players_textview);
+
+        number = 1;
+
+        players = new HashMap<String, Player>();
+        listAllPlayers = true;
+
+        mFusedLocationClient = new FusedLocationProviderClient(this);
+        mRequestingLocationUpdates = true;
+        createLocationRequest();
+        createLocationCallback();
+    }
 
     @Override
     protected void onResume() {
@@ -108,7 +167,7 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         print("createLocationRequest");
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setFastestInterval(10000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
@@ -118,6 +177,7 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 for (Location location : locationResult.getLocations()) {
+                    myLocation = location;
                     Double lat = location.getLatitude();
                     Double lon = location.getLongitude();
                     latitud = lat.toString();
@@ -158,54 +218,6 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        print("onCreate");
-        super.onCreate(savedInstanceState);
-        updateValuesFromBundle(savedInstanceState);
-
-        setContentView(R.layout.activity_zombie_client);
-
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-        connect_button = findViewById(R.id.connect_button);
-        connect_button.setOnClickListener(this);
-        register_button = findViewById(R.id.register_button);
-        register_button.setOnClickListener(this);
-        login_button = findViewById(R.id.login_button);
-        login_button.setOnClickListener(this);
-        logout_button = findViewById(R.id.logout_button);
-        logout_button.setOnClickListener(this);
-        send_location_button = findViewById(R.id.send_location_button);
-        send_location_button.setOnClickListener(this);
-        list_players_button = findViewById(R.id.list_players_button);
-        list_players_button.setOnClickListener(this);
-
-        port_edittext = findViewById(R.id.port_edittext);
-        ip_edittext = findViewById(R.id.ip_edittext);
-        user_edittext = findViewById(R.id.user_edittext);
-        password_edittext = findViewById(R.id.password_edittext);
-
-        connection_state_textview = findViewById(R.id.connection_state_textview);
-        register_state_textview = findViewById(R.id.register_state_textview);
-        login_state_textview = findViewById(R.id.login_state_textview);
-        status_state_textview = findViewById(R.id.status_textview);
-
-        longitud_edittext = findViewById(R.id.longitud_edittext);
-        latitud_edittext = findViewById(R.id.latitud_edittext);
-
-        number = 1;
-
-        players = new HashMap<String, Player>();
-        listAllPlayers = true;
-
-        mFusedLocationClient = new FusedLocationProviderClient(this);
-        mRequestingLocationUpdates = true;
-        createLocationRequest();
-        createLocationCallback();
-    }
-
-    @Override
     public void onClick(View v) {
         print("onClick");
         update_values();
@@ -221,6 +233,11 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
             send_command("send_location");
         } else if (v == list_players_button) {
             send_command("list_visible_players");
+        } else if (v == set_visibility_button) {
+            send_command("set_visibility");
+            send_command("list_visible_players");
+        } else if (v == turn_button) {
+            send_command("turn");
         }
     }
 
@@ -232,6 +249,7 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
         password = password_edittext.getText().toString();
         longitud = longitud_edittext.getText().toString();
         latitud = latitud_edittext.getText().toString();
+        visibility = visibility_edittext.getText().toString();
     }
 
     public void send_command(String command) {
@@ -278,14 +296,19 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
                     } else {
                         player.marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.zombie));
                     }
-
-                    player.marker.setPosition(position);
-                    players.put(name, player);
+                    float result[] = new float[1];
+                    Location.distanceBetween(latitude, longitude, Double.parseDouble(zombieClientActivity.latitud), Double.parseDouble(zombieClientActivity.longitud), result);
 
                     if (player.name.equals(zombieClientActivity.user)) {
                         status_state_textview.setText(player.type);
                         googleMap.moveCamera(CameraUpdateFactory.newLatLng(position));
+                    } else {
+                        player.marker.setSnippet("Distance " + String.valueOf(result[0]));
                     }
+                    player.marker.showInfoWindow();
+                    player.marker.setVisible(true);
+                    player.marker.setPosition(position);
+                    players.put(name, player);
                 }
             });
             if (listAllPlayers) {
@@ -323,6 +346,20 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
                 @Override
                 public void run() {
                     login_state_textview.setText("Logged Out");
+                    googleMap.clear();
+                    players.clear();
+                }
+            });
+        } else if (message.contains("VISIBLE-PLAYERS")) {
+            players_textview.post(new Runnable() {
+                @Override
+                public void run() {
+                    String[] visible = message.split("[ ]+");
+                    String visability = visible[2];
+                    String numberofplayers = visible[3];
+                    print("visability " + visability + " numberofplayers " + numberofplayers);
+                    players_textview.setText(numberofplayers);
+                    visibility_edittext.setText(visability);
                     googleMap.clear();
                     players.clear();
                 }
