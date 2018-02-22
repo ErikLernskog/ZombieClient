@@ -261,13 +261,19 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
     public void receive_message(final String message) {
         print(message);
         if (message.matches("(.*) PLAYER (.*) GONE")) {
-            String[] playerInfo = message.split("[ ]+");
-            String name = playerInfo[2];
-            Player player = players.get(name);
-            if (player == null) {
-                player.marker.remove();
-            }
-            players.remove(name);
+            players_textview.post(new Runnable() {
+                @Override
+                public void run() {
+                    String[] playerInfo = message.split("[ ]+");
+                    String name = playerInfo[2];
+                    Player player = players.get(name);
+                    if (player != null) {
+                        player.marker.remove();
+                        players.remove(name);
+                    }
+                    players_textview.setText(String.valueOf(players.size()));
+                }
+            });
         } else if (message.contains(" PLAYER ")) {
             final ZombieClientActivity zombieClientActivity = this;
             status_state_textview.post(new Runnable() {
@@ -306,6 +312,7 @@ public class ZombieClientActivity extends FragmentActivity implements View.OnCli
                     }
                     player.marker.setPosition(position);
                     players.put(name, player);
+                    players_textview.setText(String.valueOf(players.size()));
                 }
             });
             if (listAllPlayers) {
